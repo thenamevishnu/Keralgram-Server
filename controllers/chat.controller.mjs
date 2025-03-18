@@ -55,6 +55,10 @@ const chatList = async (request, response) => {
                     foreignField: "_id",
                     as: "users_info"
                 }
+            }, {
+                $sort: {
+                    updatedAt: -1
+                }
             }
         ])
         return response.status(200).send(chats)    

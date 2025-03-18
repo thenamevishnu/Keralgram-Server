@@ -33,13 +33,22 @@ io.on("connection", (socket) => {
         socket.join(chat_id)
     })
 
+    socket.on("join", id => {
+        socket.join(id)
+    })
+
     socket.on("send_message", messageObj => {
         socket.to(messageObj.chat_id).emit("receive_message", messageObj)
+        socket.to(messageObj.to).emit("receive_message_alt", messageObj)
     })
 
     socket.on("start_typing", ({ chat_id, user }) => {
         socket.to(chat_id).emit("on_start_typing", { user })
-    }) 
+    })
+    
+    socket.on("message_deleted", message => {
+        socket.to(message.chat_id).emit("on_delete_message", message)
+    })
 
     socket.on("stop_typing", ({ chat_id, user }) => {
         socket.to(chat_id).emit("on_stop_typing", { user })
