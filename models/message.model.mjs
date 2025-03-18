@@ -5,6 +5,7 @@ const schema = new Schema({
     time: { type: String, required: true },
     chat_id: { type: Types.ObjectId, required: true },
     sender: { type: Types.ObjectId, required: true },
+    type: { type: String, required: true, default: "text" },
     to: { type: Types.ObjectId, required: true },
     message_id: { type: String, required: true },
     delete_for_me: [{ type: String }],

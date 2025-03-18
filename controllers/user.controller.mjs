@@ -8,8 +8,8 @@ const userLogin = async (request, response) => {
         try {
             const decode = jwtDecode(credential)
             const { name, email, picture } = decode
-            const username = email.split("@")[0]
             let user = await UserModel.findOne({ email })
+            const username = user ? user.username : email.split("@")[0]
             if (!user) {
                 user = await UserModel.create({ name, username, email, picture })
                 if (!user?._id) {
@@ -57,8 +57,27 @@ const search = async (request, response) => {
     }
 }
 
+const updateUsername = async (request, response) => {
+    try {
+        const { id } = request.params
+        const { username } = request.body
+        if(!id || !username) {
+            return response.status(400).send({
+                message: "Invalid Request"
+            })
+        }
+        const res = await UserModel.updateOne({ _id: id }, { $set: request.body })
+        return response.status(200).send(res)
+    } catch (err) {
+        return response.status(500).send({
+            message: err.message || "Internal Server Error"
+        })   
+    }
+}
+
 export default {
     userLogin,
     getList,
-    search
+    search,
+    updateUsername
 }

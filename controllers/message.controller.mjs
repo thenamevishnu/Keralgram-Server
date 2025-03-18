@@ -22,7 +22,7 @@ const messages = async (request, response) => {
 
 const sendMessage = async (request, response) => {
     try {
-        const { message, time, chat_id, sender, to } = request.body
+        const { message, time, chat_id, sender, to, type } = request.body
         if(!message || !time || !chat_id || !sender || !to) {
             return response.status(400).send({
                 message: "Invalid Request"
@@ -34,10 +34,11 @@ const sendMessage = async (request, response) => {
             chat_id,
             sender,
             to,
+            type,
             message_id: v4()
         })
         const user = await UserModel.findOne({ _id: sender })
-        await ChatModel.updateOne({ _id: chat_id }, { last_message: message, last_message_time: Math.floor(new Date().getTime() / 1000) })
+        await ChatModel.updateOne({ _id: chat_id }, { last_message_type: type, last_message: message, last_message_time: Math.floor(new Date().getTime() / 1000) })
         return response.status(200).send({...res._doc, name: user?.name})
     } catch (err) {
         return response.status(500).send({
@@ -76,4 +77,16 @@ const deleteMessage = async (request, response) => {
     }
 }
 
-export default { messages, sendMessage, deleteMessage }
+const uploadFile = async (request, response) => {
+    try {
+        const res = request.files
+        const mimetype = res?.[0]?.mimetype?.split("/")?.[0]
+        return response.status(200).send({ url: process.env.SERVER + "/assets/" + res[0].filename, type: mimetype })
+    } catch (err) {
+        return response.status(500).send({
+            message: err.message || "Internal server error"
+        })
+    }
+}
+
+export default { messages, sendMessage, deleteMessage, uploadFile }

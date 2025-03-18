@@ -11,6 +11,7 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
+app.use("/assets", express.static("assets"))
 
 app.use("/v1/users", userRoute)
 app.use("/v1/chats", chatRoute)
