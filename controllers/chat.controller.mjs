@@ -38,6 +38,7 @@ const chats = async (request, response) => {
 const chatList = async (request, response) => {
     try {
         const { id } = request.params
+        const { query } = request.query
         if(!id) {
             return response.status(400).send({
                 message: "Invalid Request"
@@ -46,7 +47,7 @@ const chatList = async (request, response) => {
         const chats = await ChatModel.aggregate([
             {
                 $match: {
-                    users: { $in: [new Types.ObjectId(id)] }
+                    users: { $in: [new Types.ObjectId(id)] },
                 }
             }, {
                 $lookup: {
@@ -56,11 +57,20 @@ const chatList = async (request, response) => {
                     as: "users_info"
                 }
             }, {
+                $match: {
+                    $or: [
+                        { "users_info.name": { $regex: new RegExp(query, "i") } },
+                        { "users_info.email": { $regex: new RegExp(query, "i") } },
+                        { "users_info.username": { $regex: new RegExp(query, "i") } }
+                    ]
+                }  
+            }, {
                 $sort: {
                     updatedAt: -1
                 }
             }
         ])
+        console.log(chats);
         return response.status(200).send(chats)    
     } catch (err) {
         console.log(err);

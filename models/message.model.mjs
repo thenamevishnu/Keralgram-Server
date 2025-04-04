@@ -3,6 +3,9 @@ import { model, Schema, Types } from "mongoose";
 const schema = new Schema({
     message: { type: String, required: true },
     time: { type: String, required: true },
+    file_name: { type: String },
+    file_extension: { type: String },
+    file_size: { type: Number },
     chat_id: { type: Types.ObjectId, required: true },
     sender: { type: Types.ObjectId, required: true },
     type: { type: String, required: true, default: "text" },

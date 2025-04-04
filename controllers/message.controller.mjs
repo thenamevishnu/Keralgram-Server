@@ -22,17 +22,24 @@ const messages = async (request, response) => {
 
 const sendMessage = async (request, response) => {
     try {
-        const { message, time, chat_id, sender, to, type } = request.body
+        const { message, time, chat_id, sender, file_size, file_extension, file_name, to, type } = request.body
         if(!message || !time || !chat_id || !sender || !to) {
             return response.status(400).send({
                 message: "Invalid Request"
             })
         }
+        let messageText = message;
+        if (type == "text") {
+            messageText = message.replace(/(https?:\/\/[^\s]+)/g, '<a style="color: #29B6F6;" href="$1">$1</a>');
+        }
         const res = await MessageModel.create({
-            message,
+            message: messageText,
             time,
             chat_id,
             sender,
+            file_size,
+            file_name,
+            file_extension,
             to,
             type,
             message_id: v4()
@@ -81,7 +88,8 @@ const uploadFile = async (request, response) => {
     try {
         const res = request.files
         const mimetype = res?.[0]?.mimetype?.split("/")?.[0]
-        return response.status(200).send({ url: process.env.SERVER + "/assets/" + res[0].filename, type: mimetype })
+        const fileExtension = res?.[0]?.mimetype?.split("/")?.[1]
+        return response.status(200).send({ file_name: res[0].originalname, url: process.env.SERVER + "/assets/" + res[0].originalname, type: mimetype, ext: fileExtension })
     } catch (err) {
         return response.status(500).send({
             message: err.message || "Internal server error"

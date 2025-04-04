@@ -6,8 +6,8 @@ const storage = multer.diskStorage({
         cb(null, "assets")
     },
     filename: function (req, file, cb) {
-        const fileName = uuidv4()
-        cb(null, `${fileName}.${file.mimetype.split("/")[1]}`)
+        console.log(file);
+        cb(null, `${file.originalname}`)
     }
 })
 
