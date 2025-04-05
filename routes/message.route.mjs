@@ -8,5 +8,6 @@ messageRoute.get("/:chat_id", messageController.messages)
 messageRoute.post("/", messageController.sendMessage)
 messageRoute.delete("/:id", messageController.deleteMessage)
 messageRoute.post("/upload", upload.array("file"), messageController.uploadFile)
+messageRoute.post("/unread", messageController.incrementUnread)
 
 export default messageRoute

@@ -5,6 +5,7 @@ import userRoute from "./routes/user.route.mjs"
 import { db } from "./config/db.config.mjs"
 import chatRoute from "./routes/chat.route.mjs"
 import messageRoute from "./routes/message.route.mjs"
+import { ActiveModel } from "./models/active.model.mjs"
 
 await db.connect()
 const app = express()
@@ -30,12 +31,26 @@ const io = new Server(server, {
 })
 
 io.on("connection", (socket) => {
+
     socket.on("join_chat", ({ chat_id }) => {
         socket.join(chat_id)
     })
 
-    socket.on("join", id => {
-        socket.join(id)
+    socket.on("join", async id => {
+        await socket.join(id)
+        const res = await ActiveModel.findOne({ user_id: id })
+        if (!res) {
+            await ActiveModel.create({ user_id: id })
+            socket.to((await ActiveModel.find()).map(i => i.user_id)).emit("active_status_update", {id, online: true})
+        }
+    })
+
+    socket.on("offline", async id => {
+        const res = await ActiveModel.findOne({ user_id: id })
+        if (res) {
+            await ActiveModel.deleteMany({ user_id: id })
+            socket.to((await ActiveModel.find()).map(i => i.user_id)).emit("active_status_update", {id, online: false})
+        }
     })
 
     socket.on("send_message", messageObj => {
@@ -54,5 +69,4 @@ io.on("connection", (socket) => {
     socket.on("stop_typing", ({ chat_id, user }) => {
         socket.to(chat_id).emit("on_stop_typing", { user })
     }) 
-
 })

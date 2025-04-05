@@ -18,6 +18,10 @@ const userLogin = async (request, response) => {
                     })
                 }
             }
+            if (user.picture != picture) {
+                user.picture = picture
+                await user.save()
+            }
             const token = jwt.sign({ sub: user}, process.env.JWT_SECRET, {
                 expiresIn: "7d"
             })

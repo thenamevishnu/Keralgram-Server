@@ -5,5 +5,6 @@ const chatRoute = Router()
 
 chatRoute.post("/", chatController.chats)
 chatRoute.get("/:id", chatController.chatList)
+chatRoute.get("/list/active", chatController.getActiveChats)
 
 export default chatRoute

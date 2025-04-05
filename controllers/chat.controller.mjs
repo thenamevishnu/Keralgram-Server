@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { ChatModel } from "../models/chat.model.mjs"
+import { ActiveModel } from "../models/active.model.mjs";
 
 const chats = async (request, response) => {
     try {
@@ -65,15 +66,31 @@ const chatList = async (request, response) => {
                     ]
                 }  
             }, {
+                $lookup: {
+                    from: "unreadings",
+                    localField: "_id",
+                    foreignField: "chat_id",
+                    as: "unread"
+                }  
+            }, {
                 $sort: {
                     updatedAt: -1
                 }
             }
         ])
-        console.log(chats);
         return response.status(200).send(chats)    
     } catch (err) {
-        console.log(err);
+        return response.status(500).send({
+            message: err.message || "Internal Server Error"
+        })   
+    }
+}
+
+const getActiveChats = async (request, response) => {
+    try {
+        const res = await ActiveModel.find()
+        return response.status(200).send(res)
+    } catch (err) {
         return response.status(500).send({
             message: err.message || "Internal Server Error"
         })   
@@ -81,5 +98,5 @@ const chatList = async (request, response) => {
 }
 
 export default {
-    chats, chatList
+    chats, chatList, getActiveChats
 }

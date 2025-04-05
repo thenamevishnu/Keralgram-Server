@@ -3,6 +3,8 @@ import { MessageModel } from "../models/message.model.mjs"
 import { ChatModel } from "../models/chat.model.mjs";
 import { v4 } from "uuid";
 import { UserModel } from "../models/user.model.mjs";
+import { UnreadModel } from "../models/unread.model.mjs";
+import { ActiveModel } from "../models/active.model.mjs";
 
 const messages = async (request, response) => {
     try {
@@ -46,7 +48,11 @@ const sendMessage = async (request, response) => {
         })
         const user = await UserModel.findOne({ _id: sender })
         await ChatModel.updateOne({ _id: chat_id }, { last_message_type: type, last_message: message, last_message_time: Math.floor(new Date().getTime() / 1000) })
-        return response.status(200).send({...res._doc, name: user?.name})
+        const is_active = await ActiveModel.findOne({ user_id: to })
+        if (!is_active) {
+            await UnreadModel.updateOne({ chat_id }, { $inc: { [sender]: 1 } })
+        }
+        return response.status(200).send({ ...res._doc, name: user?.name })
     } catch (err) {
         return response.status(500).send({
             message: err.message || "Internal Server Error"
@@ -97,4 +103,30 @@ const uploadFile = async (request, response) => {
     }
 }
 
-export default { messages, sendMessage, deleteMessage, uploadFile }
+const incrementUnread = async (request, response) => {
+    try {
+        const { chat_id, to, reset } = request.body
+        let res = await UnreadModel.findOne({ chat_id })
+        if (reset) {
+            if (res) {
+                res[to] = 0
+                await UnreadModel.updateOne({ chat_id }, { $set: { [to]: 0 } })
+                return response.status(200).send(res)
+            }
+            return response.status(200).send(res)
+        }
+        if(!res){
+            res = await UnreadModel.create({ chat_id, [to]: 1 })
+        } else {
+            res[to] = res[to] + 1
+            await UnreadModel.updateOne({ chat_id }, { $inc: { [to]: 1 } })
+        }
+        return response.status(200).send(res)
+    } catch (err) {
+        return response.status(500).send({
+            message: err.message || "Internal Server Error"
+        })   
+    }
+}
+
+export default { messages, sendMessage, deleteMessage, uploadFile, incrementUnread }
