@@ -1,6 +1,7 @@
 import { jwtDecode } from "jwt-decode"
 import jwt from "jsonwebtoken"
 import { UserModel } from "../models/user.model.mjs"
+import { ChatModel } from "../models/chat.model.mjs"
 
 const userLogin = async (request, response) => {
     try {
@@ -61,6 +62,20 @@ const search = async (request, response) => {
     }
 }
 
+const searchForAddUser = async (request, response) => {
+    try {
+        const { query, chat_id } = request.query
+        const chat = await ChatModel.findOne({ _id: chat_id })
+        const res = await UserModel.find({ $and: [{ _id: { $nin: chat.users } }, { _id: { $ne: chat.owner } }, { _id: { $nin: chat.admins } }], $or: [{ name: { $regex: new RegExp(query, "i") } }, { email: { $regex: new RegExp(query, "i") } }] })
+        return response.status(200).send(res)
+    } catch (err) {
+        console.log(err);
+        return response.status(500).send({
+            message: err.message || "Internal Server Error"
+        })
+    }
+}
+
 const updateUsername = async (request, response) => {
     try {
         const { id } = request.params
@@ -83,5 +98,6 @@ export default {
     userLogin,
     getList,
     search,
-    updateUsername
+    updateUsername,
+    searchForAddUser
 }

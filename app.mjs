@@ -6,6 +6,8 @@ import { db } from "./config/db.config.mjs"
 import chatRoute from "./routes/chat.route.mjs"
 import messageRoute from "./routes/message.route.mjs"
 import { ActiveModel } from "./models/active.model.mjs"
+import groupRoute from "./routes/group.route.mjs"
+import { ChatModel } from "./models/chat.model.mjs"
 
 await db.connect()
 const app = express()
@@ -13,10 +15,12 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 app.use("/assets", express.static("assets"))
+app.use("/files", express.static("files"))
 
 app.use("/v1/users", userRoute)
 app.use("/v1/chats", chatRoute)
 app.use("/v1/messages", messageRoute)
+app.use("/v1/groups", groupRoute)
 
 const server = app.listen(process.env.PORT || 8081, () => {
     console.log(`Listening on port ${process.env.PORT || 8081}`)
@@ -53,9 +57,10 @@ io.on("connection", (socket) => {
         }
     })
 
-    socket.on("send_message", messageObj => {
+    socket.on("send_message", async messageObj => {
         socket.to(messageObj.chat_id).emit("receive_message", messageObj)
-        socket.to(messageObj.to).emit("receive_message_alt", messageObj)
+        const users = await ChatModel.findOne({ _id: messageObj.chat_id })
+        socket.to(users.users.map(i => i.toString())).emit("receive_message_alt", messageObj)
     })
 
     socket.on("start_typing", ({ chat_id, user }) => {
@@ -69,4 +74,12 @@ io.on("connection", (socket) => {
     socket.on("stop_typing", ({ chat_id, user }) => {
         socket.to(chat_id).emit("on_stop_typing", { user })
     }) 
+
+    socket.on("new_chat_added", ({ id, chat_id, user, chat_users, messageObj }) => {
+        socket.to([id, chat_id, ...chat_users]).emit("new_chat_added", { user, chat_id, messageObj })
+    })
+
+    socket.on("left_from_chat", ({ chat_id, user_id, chat_users, messageObj }) => {
+        socket.to([chat_id, ...chat_users]).emit("left_from_chat", { user_id, chat_id, messageObj })
+    })
 })
