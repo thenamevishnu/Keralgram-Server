@@ -93,6 +93,7 @@ const chatList = async (request, response) => {
 const getGroupChats = async (request, response) => {
     try {
         const { id } = request.params
+        const { query } = request.query
         if(!id) {
             return response.status(400).send({
                 message: "Invalid Request"
@@ -102,7 +103,8 @@ const getGroupChats = async (request, response) => {
             {
                 $match: {
                     users: { $in: [new Types.ObjectId(id)] },
-                    chat_type: "group"
+                    chat_type: "group",
+                    title: { $regex: new RegExp(query, "i") }
                 }
             }, {
                 $lookup: {
