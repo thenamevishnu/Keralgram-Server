@@ -12,7 +12,10 @@ import { ChatModel } from "./models/chat.model.mjs"
 await db.connect()
 const app = express()
 
-app.use(cors())
+app.use(cors({
+    origin: "*",
+    methods: "*"
+}))
 app.use(express.json({ limit: "450mb" }))
 app.use("/assets", express.static("assets"))
 app.use("/files", express.static("files"))
@@ -29,8 +32,8 @@ const server = app.listen(process.env.PORT || 8081, () => {
 const io = new Server(server, {
     pingTimeout: 60000,
     cors: {
-        origin: process.env.CLIENT_URL,
-        methods: ["GET", "POST", "DELETE", "PATCH"]
+        origin: "*",
+        methods: "*"
     }
 })
 
