@@ -13,7 +13,7 @@ await db.connect()
 const app = express()
 
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: "450mb" }))
 app.use("/assets", express.static("assets"))
 app.use("/files", express.static("files"))
 
