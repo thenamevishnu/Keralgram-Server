@@ -20,6 +20,10 @@ app.use(express.json({ limit: "450mb" }))
 app.use("/assets", express.static("assets"))
 app.use("/files", express.static("files"))
 
+app.get("/", (req, res) => {
+    return res.status(200).send({ message: "Welcome to the server" })
+})
+
 app.use("/v1/users", userRoute)
 app.use("/v1/chats", chatRoute)
 app.use("/v1/messages", messageRoute)
