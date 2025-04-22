@@ -3,7 +3,7 @@ import axios from "axios"
 
 cronTask.schedule("* * * * *", async () => {
     try {
-        const { data, status } = await axios.get(process.env, SERVER)
+        const { status } = await axios.get(process.env.SERVER)
         if (status === 200) {
             console.log("Server is up and running")
         } else {
