@@ -8,6 +8,7 @@ import messageRoute from "./routes/message.route.mjs"
 import { ActiveModel } from "./models/active.model.mjs"
 import groupRoute from "./routes/group.route.mjs"
 import { ChatModel } from "./models/chat.model.mjs"
+import "./LIb/cron-job.mjs"
 
 await db.connect()
 const app = express()
